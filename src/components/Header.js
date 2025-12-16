@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import styled from 'styled-components';
 import { FiUser } from 'react-icons/fi';
+import userAvatar from '../assets/user.jpg'; 
 
 const HeaderContainer = styled.header`
   display: flex;
@@ -83,11 +84,17 @@ const UserAvatar = styled.div`
   box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.06);
 `;
 
+const AvatarImage = styled.img`
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+`;
+
 const StatusIndicator = styled.span`
   position: absolute;
-  top: 50%;
   right: -2px;
-  transform: translateY(-50%);
+  bottom: -2px;
   width: 12px;
   height: 12px;
   border-radius: 50%;
@@ -106,7 +113,7 @@ const Header = () => {
         <button>Вийти</button>
         <Link to="/profile">
           <UserAvatar>
-            <FiUser size={18} color="#1b1c2f" />
+            <AvatarImage src={userAvatar} alt="User avatar" />
             <StatusIndicator />
           </UserAvatar>
         </Link>

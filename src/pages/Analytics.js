@@ -41,7 +41,7 @@ const Card = styled.div`
     margin-top: 0;
     color: #e6e6e6;
     font-weight: 600;
-    font-size: 1.15rem;
+    font-size: 1.4rem;
   }
 `;
 
@@ -127,11 +127,11 @@ const monthlyData = [
   { name: 'W4', uv: 27, pv: 30 },
 ];
 
-const pieChartData = [{ value: 94 }, { value: 6 }];
+const pieChartData = [{ value: 65 }, { value: 35 }];
 const COLORS = ['#34D399', '#313346'];
 
 const Analytics = () => {
-  const [period, setPeriod] = useState('quarter');
+  const [period, setPeriod] = useState('year');
 
   const dataset = period === 'year' ? lineChartData : period === 'quarter' ? quarterlyData : monthlyData;
 
@@ -142,29 +142,29 @@ const Analytics = () => {
   return (
     <DashboardGrid>
       <StatCard area="active" $accent>
-        <h3>Кількість Активних Проектів</h3>
-        <h2>42</h2>
-        <p>В роботі</p>
+        <h3>Дані 1</h3>
+        <h2>37</h2>
+        <p>активних проєктів</p>
       </StatCard>
       <StatCard area="completed">
-        <h3>Завершені Проекти</h3>
-        <h2>158</h2>
-        <p>За цей період</p>
+        <h3>Дані 2</h3>
+        <h2>124</h2>
+        <p>завершено за період</p>
       </StatCard>
       <PercentageCard>
-        <h3>Відсоток Проектів Виконаних Вчасно</h3>
+        <h3>Дані 3</h3>
         <ResponsiveContainer width="100%" height={240}>
           <PieChart>
             <Pie data={pieChartData} cx="50%" cy="50%" innerRadius={85} outerRadius={110} startAngle={90} endAngle={450} paddingAngle={0} dataKey="value">
               {pieChartData.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
             </Pie>
-            <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" fontSize="56" fill="#fff">94%</text>
+            <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" fontSize="56" fill="#fff">65%</text>
           </PieChart>
         </ResponsiveContainer>
       </PercentageCard>
       <ChartCard>
         <ChartHeader>
-          <h3>Нові Клієнти за Період</h3>
+          <h3>Дані 4</h3>
           <PeriodBadge onClick={cyclePeriod} title="Клікніть, щоб змінити період">
             Період: {period === 'year' ? 'Рік' : period === 'quarter' ? 'Квартал' : 'Місяць'}
           </PeriodBadge>
