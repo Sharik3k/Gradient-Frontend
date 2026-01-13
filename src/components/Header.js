@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, NavLink } from 'react-router-dom';
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 import userAvatar from '../assets/user.jpg';
 import ThemeToggle from './ThemeToggle'; 
 
@@ -49,28 +49,7 @@ const Nav = styled.nav`
 const UserMenu = styled.div`
   display: flex;
   align-items: center;
-
-  button {
-    background: none;
-    border: none;
-    color: ${({ theme }) => theme.colors.textSecondary};
-    cursor: pointer;
-    font-size: 1rem;
-    margin-right: 1.5rem;
-    transition: color 0.2s ease, opacity 0.2s ease;
-
-    &:hover {
-      color: ${({ theme }) => theme.colors.text};
-      opacity: 1;
-    }
-  }
-
-  img {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    box-shadow: 0 0 0 2px ${({ theme }) => theme.colors.border};
-  }
+  position: relative;
 `;
 
 const UserAvatar = styled.div`
@@ -92,6 +71,127 @@ const AvatarImage = styled.img`
   object-fit: cover;
 `;
 
+const dropdownAppear = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+`;
+
+const UserButton = styled.button`
+  display: flex;
+  align-items: center;
+  background: none;
+  border: none;
+  color: ${({ theme }) => theme.colors.textSecondary};
+  cursor: pointer;
+  padding: 0;
+`;
+
+const UserDropdown = styled.div`
+  ${({ closing }) => closing && 'pointer-events: none;'}
+  position: absolute;
+  top: 52px;
+  right: 0;
+  width: 320px;
+  background: ${({ theme }) => theme.colors.headerBackground};
+  border-radius: 16px;
+  box-shadow: 0 10px 30px ${({ theme }) => theme.colors.shadow};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  padding: 1.25rem 1.2rem 1rem;
+  z-index: 10;
+  animation: ${dropdownAppear} 0.22s ease-out forwards;
+  ${({ closing }) => closing && 'animation-direction: reverse; pointer-events: none;'}
+`;
+
+const UserTop = styled.div`
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid ${({ theme }) => theme.colors.border};
+`;
+
+const UserTopInfo = styled.div`
+  margin-left: 0.75rem;
+
+  h4 {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+  }
+
+  span {
+    display: block;
+    font-size: 0.8rem;
+    opacity: 0.8;
+  }
+`;
+
+const OnlineDot = styled.span`
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #21ff00;
+  margin-left: 0.4rem;
+`;
+
+const MenuList = styled.ul`
+  list-style: none;
+  margin: 0;
+  padding: 0;
+`;
+
+const MenuItem = styled.li`
+  a,
+  button {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.65rem 0.7rem;
+    border-radius: 999px;
+    background: transparent;
+    border: none;
+    text-align: left;
+    color: ${({ theme }) => theme.colors.textSecondary};
+    text-decoration: none;
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: background 0.2s ease, color 0.2s ease;
+
+    &:hover {
+      background: ${({ theme }) => theme.colors.cardBackground};
+      color: ${({ theme }) => theme.colors.text};
+    }
+  }
+
+  &.logout button {
+    color: #ff4d4f;
+
+    &:hover {
+      background: rgba(255, 77, 79, 0.12);
+      color: #ff4d4f;
+    }
+  }
+`;
+
+const IconCircle = styled.span`
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: ${({ theme }) => theme.colors.cardBackground};
+  font-size: 0.95rem;
+`;
+
 const StatusIndicator = styled.span`
   position: absolute;
   right: -2px;
@@ -104,6 +204,44 @@ const StatusIndicator = styled.span`
 `;
 
 const Header = () => {
+  const [open, setOpen] = useState(false);
+  const [closing, setClosing] = useState(false);
+  const menuRef = useRef(null);
+
+  const toggleMenu = () => {
+    setOpen((prev) => !prev);
+  };
+
+  const closeMenu = () => {
+    if (closing) return;
+    setClosing(true);
+    setTimeout(() => {
+      setOpen(false);
+      setClosing(false);
+    }, 220); // match animation duration
+  };
+  useEffect(() => {
+    if (!open) return;
+
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        closeMenu();
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [open, closing]);
+
+  const handleLogout = () => {
+    // TODO: replace with real logout logic when ready
+    console.log('Logout clicked');
+    closeMenu();
+  };
+
   return (
     <HeaderContainer>
       <ThemeToggle />
@@ -111,14 +249,56 @@ const Header = () => {
         <NavLink to="/" end className={({ isActive }) => (isActive ? 'active' : '')}>Аналітика</NavLink>
         <NavLink to="/automation" className={({ isActive }) => (isActive ? 'active' : '')}>Автоматизація</NavLink>
       </Nav>
-      <UserMenu>
-        <button>Вийти</button>
-        <Link to="/profile">
+      <UserMenu ref={menuRef}>
+        <UserButton type="button" onClick={toggleMenu}>
           <UserAvatar>
             <AvatarImage src={userAvatar} alt="User avatar" />
             <StatusIndicator />
           </UserAvatar>
-        </Link>
+        </UserButton>
+        {(open || closing) && (
+          <UserDropdown closing={closing}>
+            <UserTop>
+              <UserAvatar>
+                <AvatarImage src={userAvatar} alt="User avatar" />
+                <StatusIndicator />
+              </UserAvatar>
+              <UserTopInfo>
+                <h4>User</h4>
+                <span>
+                  Admin
+                  <OnlineDot />
+                </span>
+              </UserTopInfo>
+            </UserTop>
+            <MenuList>
+              <MenuItem>
+                <Link to="/profile" onClick={closeMenu}>
+                  <IconCircle>👤</IconCircle>
+                  <span>Профіль</span>
+                </Link>
+              </MenuItem>
+              <MenuItem>
+                <button type="button" onClick={closeMenu}>
+                  <IconCircle>🕒</IconCircle>
+                  <span>Історія Лідів</span>
+                </button>
+              </MenuItem>
+              <MenuItem>
+                <button type="button" onClick={closeMenu}>
+                  <IconCircle>⚙️</IconCircle>
+                  <span>Налаштування</span>
+                </button>
+              </MenuItem>
+              <MenuItem className="logout">
+                <button type="button" onClick={handleLogout}>
+                  <IconCircle>↩</IconCircle>
+                  <span>Вийти</span>
+                </button>
+              </MenuItem>
+            </MenuList>
+          </UserDropdown>
+        )}
       </UserMenu>
     </HeaderContainer>
   );
